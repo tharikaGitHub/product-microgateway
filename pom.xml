@@ -31,14 +31,6 @@
         <url>http://wso2.org/</url>
     </organization>
 
-
-    <scm>
-        <url>https://github.com/wso2/product-microgateway.git</url>
-        <developerConnection>scm:git:https://github.com/wso2/product-microgateway.git</developerConnection>
-        <connection>scm:git:https://github.com/wso2/product-microgateway.git</connection>
-        <tag>v2.6.0-rc3</tag>
-    </scm>
-
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
@@ -344,23 +336,6 @@
                 </configuration>
             </plugin>
         </plugins>
-
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <configuration>
-                        <preparationGoals>clean install</preparationGoals>
-                        <autoVersionSubmodules>true</autoVersionSubmodules>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
 
     <properties>
@@ -400,7 +375,6 @@
         <org.snakeyaml.version>1.16.0.wso2v1</org.snakeyaml.version>
         <apache.mina.core>2.0.16</apache.mina.core>
         <awaitility.version>3.0.0</awaitility.version>
-        <project.scm.id>scm-server</project.scm.id>
     </properties>
 
 </project>

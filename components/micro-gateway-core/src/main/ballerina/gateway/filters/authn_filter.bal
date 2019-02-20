@@ -52,13 +52,14 @@ public type AuthnFilter object {
     @Description {value:"filterRequest: Request filter function"}
     public function doFilterRequest (http:Listener listener, http:Request request, http:FilterContext context)
             returns boolean {
-        runtime:getInvocationContext().attributes[MESSAGE_ID] = <string>context.attributes[MESSAGE_ID];
+        runtime:InvocationContext invocationContext = runtime:getInvocationContext();
+        invocationContext.attributes[MESSAGE_ID] = <string>context.attributes[MESSAGE_ID];
         printDebug(KEY_AUTHN_FILTER, "Processing request via Authentication filter.");
 
         context.attributes[REMOTE_ADDRESS] = getClientIp(request, listener);
         context.attributes[FILTER_FAILED] = false;
-        runtime:getInvocationContext().attributes[SERVICE_TYPE_ATTR] = context.serviceType;
-        runtime:getInvocationContext().attributes[RESOURCE_NAME_ATTR] = context.resourceName;
+        invocationContext.attributes[SERVICE_TYPE_ATTR] = context.serviceType;
+        invocationContext.attributes[RESOURCE_NAME_ATTR] = context.resourceName;
         // get auth config for this resource
         boolean authenticated;
         APIRequestMetaDataDto apiKeyValidationRequestDto = getKeyValidationRequestObject();
@@ -113,7 +114,7 @@ public type AuthnFilter object {
             } else {
                 match extractAccessToken(request, authHeaderName) {
                     string token => {
-                        runtime:getInvocationContext().attributes[ACCESS_TOKEN_ATTR] = token;
+                        invocationContext.attributes[ACCESS_TOKEN_ATTR] = token;
                         printDebug(KEY_AUTHN_FILTER, "Successfully extracted the OAuth token from header : " + authHeaderName);
                         match self.oauthnHandler.handle(request) {
                             APIKeyValidationDto apiKeyValidationDto => {
@@ -153,8 +154,8 @@ public type AuthnFilter object {
                                     context.attributes[AUTHENTICATION_CONTEXT] = authenticationContext;
 
                                     // setting keytype to invocationContext
-                                    runtime:getInvocationContext().attributes[KEY_TYPE_ATTR] = authenticationContext.keyType;
-                                    runtime:AuthContext authContext = runtime:getInvocationContext().authContext;
+                                    invocationContext.attributes[KEY_TYPE_ATTR] = authenticationContext.keyType;
+                                    runtime:AuthContext authContext = invocationContext.authContext;
                                     authContext.scheme = AUTH_SCHEME_OAUTH2;
                                     authContext.authToken = token;
                                 } else {

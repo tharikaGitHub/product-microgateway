@@ -39,10 +39,11 @@ public type SubscriptionFilter object {
     @Description {value:"filterRequest: Request filter function"}
     public function doFilterRequest (http:Listener listener, http:Request request, http:FilterContext filterContext)
         returns boolean {
-        string authScheme = runtime:getInvocationContext().authContext.scheme;
+        runtime:InvocationContext invocationContext = runtime:getInvocationContext();
+        string authScheme = invocationContext.authContext.scheme;
         printDebug(KEY_SUBSCRIPTION_FILTER, "Auth scheme: " + authScheme);
         if(authScheme == AUTH_SCHEME_JWT ){
-            string jwtToken = runtime:getInvocationContext().authContext.authToken;
+            string jwtToken = invocationContext.authContext.authToken;
             string currentAPIContext = getContext(filterContext);
             AuthenticationContext authenticationContext;
             match getEncodedJWTPayload(jwtToken) {
@@ -82,7 +83,7 @@ public type SubscriptionFilter object {
                                     authenticationContext.apiPublisher = "__unknown__";
                                     authenticationContext.subscriberTenantDomain = "__unknown__";
                                     authenticationContext.keyType = decodedPayload.keytype.toString();
-                                    runtime:getInvocationContext().attributes[KEY_TYPE_ATTR] = authenticationContext.keyType;
+                                    invocationContext.attributes[KEY_TYPE_ATTR] = authenticationContext.keyType;
                                     filterContext.attributes[AUTHENTICATION_CONTEXT] = authenticationContext;
                                     return true;
                                 }
@@ -108,7 +109,7 @@ public type SubscriptionFilter object {
                                     authenticationContext.keyType = decodedPayload.keytype.toString();
                                     // setting keytype to invocationContext
                                     printDebug(KEY_SUBSCRIPTION_FILTER, "Setting key type as " + authenticationContext.keyType);
-                                    runtime:getInvocationContext().attributes[KEY_TYPE_ATTR] = authenticationContext.keyType;
+                                    invocationContext.attributes[KEY_TYPE_ATTR] = authenticationContext.keyType;
                                     filterContext.attributes[AUTHENTICATION_CONTEXT] = authenticationContext;
                                     printDebug(KEY_SUBSCRIPTION_FILTER, "Subscription validation success.");
                                     return true;
@@ -130,20 +131,19 @@ public type SubscriptionFilter object {
                                 authenticationContext.apiPublisher = "__unknown__";
                                 authenticationContext.subscriberTenantDomain = "__unknown__";
                                 authenticationContext.keyType = "__unknown__";
-                                runtime:getInvocationContext().attributes[KEY_TYPE_ATTR] = authenticationContext.keyType
-                                ;
+                                invocationContext.attributes[KEY_TYPE_ATTR] = authenticationContext.keyType;
                                 filterContext.attributes[AUTHENTICATION_CONTEXT] = authenticationContext;
                                 return true;
                             }
                             setErrorMessageToFilterContext(filterContext, API_AUTH_FORBIDDEN);
-                            sendErrorResponse(listener, request, filterContext);
+                            sendErrorResponse(listener, request, untaint filterContext);
                             return false;
                         }
                         error err => {
                             log:printError("Error occurred while decoding the JWT token with the payload : " +
                                     jwtPayload, err = err);
                             setErrorMessageToFilterContext(filterContext, API_AUTH_GENERAL_ERROR);
-                            sendErrorResponse(listener, request, filterContext);
+                            sendErrorResponse(listener, request, untaint filterContext);
                             return false;
                         }
                     }
@@ -151,7 +151,7 @@ public type SubscriptionFilter object {
                 error err => {
                     log:printError(err.message, err = err);
                     setErrorMessageToFilterContext(filterContext, API_AUTH_GENERAL_ERROR);
-                    sendErrorResponse(listener, request, filterContext);
+                    sendErrorResponse(listener, request, untaint filterContext);
                     return false;
                 }
             }

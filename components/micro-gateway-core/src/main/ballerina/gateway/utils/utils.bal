@@ -164,14 +164,15 @@ public function getServiceConfigAnnotation(reflect:annotationData[] annData)
 @Description { value: "Retrieve the key validation request dto from filter context" }
 @Return { value: "api key validation request dto" }
 public function getKeyValidationRequestObject() returns APIRequestMetaDataDto {
+    runtime:InvocationContext invocationContext = runtime:getInvocationContext();
     APIRequestMetaDataDto apiKeyValidationRequest = {};
-    typedesc serviceType = check <typedesc>runtime:getInvocationContext().attributes[SERVICE_TYPE_ATTR];
-    http:HttpServiceConfig httpServiceConfig = getServiceConfigAnnotation(reflect:getServiceAnnotations(serviceType));
+    typedesc serviceType = check <typedesc>invocationContext.attributes[SERVICE_TYPE_ATTR];
+    reflect:annotationData[] annData = reflect:getServiceAnnotations(serviceType);
+    http:HttpServiceConfig httpServiceConfig = getServiceConfigAnnotation(annData);
     http:HttpResourceConfig httpResourceConfig = getResourceConfigAnnotation
-    (reflect:getResourceAnnotations(serviceType, <string>runtime:
-            getInvocationContext().attributes[RESOURCE_NAME_ATTR]));
+    (reflect:getResourceAnnotations(serviceType, <string>invocationContext.attributes[RESOURCE_NAME_ATTR]));
     string apiContext = httpServiceConfig.basePath;
-    APIConfiguration apiConfig = getAPIDetailsFromServiceAnnotation(reflect:getServiceAnnotations(serviceType));
+    APIConfiguration apiConfig = getAPIDetailsFromServiceAnnotation(annData);
     string apiVersion = apiConfig.apiVersion;
     apiKeyValidationRequest.apiVersion = apiVersion;
     if (!apiContext.contains(apiVersion)){
@@ -186,7 +187,7 @@ public function getKeyValidationRequestObject() returns APIRequestMetaDataDto {
     apiKeyValidationRequest.clientDomain = "*";
     apiKeyValidationRequest.matchingResource = httpResourceConfig.path;
     apiKeyValidationRequest.httpVerb = httpResourceConfig.methods[0];
-    apiKeyValidationRequest.accessToken = <string>runtime:getInvocationContext().attributes[ACCESS_TOKEN_ATTR];
+    apiKeyValidationRequest.accessToken = <string>invocationContext.attributes[ACCESS_TOKEN_ATTR];
     printDebug(KEY_UTILS, "Created request meta-data object with context: " + apiContext 
             + ", resource: " + apiKeyValidationRequest.matchingResource
             + ", verb: " + apiKeyValidationRequest.httpVerb);
